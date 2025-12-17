@@ -76,6 +76,8 @@ allocproc(void)
   struct proc *p;
   char *sp;
 
+  
+  
   acquire(&ptable.lock);
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
@@ -88,6 +90,7 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->context_switches = 0;    // Inicializar el contador de cambios de contexto
 
   release(&ptable.lock);
 
@@ -342,6 +345,8 @@ scheduler(void)
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
+
+      p->context_switches++;    // Incrementar el contador de cambios de contexto
 
       swtch(&(c->scheduler), p->context);
       switchkvm();

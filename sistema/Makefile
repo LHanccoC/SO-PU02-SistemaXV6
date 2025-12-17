@@ -183,6 +183,7 @@ UPROGS=\
 	_zombie\
 	_trace\
 	_pruebatrace\
+	_psinfo\
 	_syscount\
 
 fs.img: mkfs README $(UPROGS)

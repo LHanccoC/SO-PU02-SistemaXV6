@@ -1,6 +1,14 @@
 struct stat;
 struct rtcdate;
 
+// Estructura para transferir la información de un proceso al espacio de usuario
+struct procinfo {
+  int pid;
+  char state_name[16]; // String para el estado
+  int context_switches;
+  int sz; // Tamaño de la memoria
+};
+
 // system calls
 int fork(void);
 int exit(void) __attribute__((noreturn));
@@ -24,6 +32,7 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int trace(int);
+int getprocinfo(struct procinfo *);     // Nueva syscall para obtener info del proceso 
 int getsyscount(int);
 
 // ulib.c
