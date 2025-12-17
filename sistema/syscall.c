@@ -7,7 +7,9 @@
 #include "x86.h"
 #include "syscall.h"
 #include "stat.h"
+#define MAX_SYSCALLS 32
 
+int syscall_count[MAX_SYSCALLS];//NELEM(syscalls)
 // User code makes a system call with INT T_SYSCALL.
 // System call number in %eax.
 // Arguments on the stack, from the user call to the C
@@ -105,6 +107,7 @@ extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_trace(void);
+extern int sys_getsyscount(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -129,6 +132,7 @@ static int (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 [SYS_trace]   sys_trace,
+[SYS_getsyscount] sys_getsyscount,
 };
 
 static char *syscall_names[] = {
@@ -153,6 +157,7 @@ static char *syscall_names[] = {
 [SYS_link]    "link",
 [SYS_mkdir]   "mkdir",
 [SYS_close]   "close",
+[SYS_getsyscount] "getsyscount",
 };
 
 void
@@ -162,6 +167,11 @@ syscall(void)
   struct proc *curproc = myproc();
 
   num = curproc->tf->eax;
+
+  if(num > 0 && num < MAX_SYSCALLS){
+    syscall_count[num]++;
+  }
+
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     if(curproc->tracing && strncmp(curproc->name, "trace",5) != 0) {
       cprintf("[SYSCALL] %s", syscall_names[num]);

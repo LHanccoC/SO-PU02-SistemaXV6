@@ -7,6 +7,8 @@
 #include "mmu.h"
 #include "proc.h"
 
+extern int syscall_count[];
+
 int
 sys_fork(void)
 {
@@ -99,4 +101,18 @@ sys_trace(void)
         return -1;
     myproc()->tracing = on;
     return 0;
+}
+
+int
+sys_getsyscount(void)
+{
+  int num;
+
+  if(argint(0, &num) < 0)
+    return -1;
+
+  if(num < 0 || num >= 32)
+    return -1;
+
+  return syscall_count[num];
 }
