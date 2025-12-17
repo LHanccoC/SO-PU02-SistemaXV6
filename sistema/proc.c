@@ -13,6 +13,9 @@ struct {
 } ptable;
 
 static struct proc *initproc;
+// Numero de cambios de contexto en el sistema
+volatile uint total_context_switches = 0;
+
 
 int nextpid = 1;
 extern void forkret(void);
@@ -348,6 +351,7 @@ scheduler(void)
 
       p->context_switches++;    // Incrementar el contador de cambios de contexto
 
+      total_context_switches++; // Incrementar el contador global de cambios de contexto
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
