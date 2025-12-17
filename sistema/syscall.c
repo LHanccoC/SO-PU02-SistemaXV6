@@ -105,6 +105,7 @@ extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_trace(void);
+extern int sys_getprocinfo(void);    // Declaración de la nueva syscall
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -129,6 +130,7 @@ static int (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 [SYS_trace]   sys_trace,
+[SYS_getprocinfo] sys_getprocinfo,  // Nueva syscall
 };
 
 static char *syscall_names[] = {
