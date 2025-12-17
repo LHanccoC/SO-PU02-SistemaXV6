@@ -14,7 +14,7 @@ main(int argc, char *argv[])
     }
 
     printf(1, "Syscall counts:\n");
-    for(i = 0; i < 24; i++) {
+    for(i = 0; i < 25; i++) {
         printf(1, "Syscall %d: %d\n", i, getsyscount(i));
     }
 
