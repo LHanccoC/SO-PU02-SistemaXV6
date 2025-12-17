@@ -6,69 +6,64 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
-#include "spinlock.h" 
+#include "spinlock.h"
 
-int
-sys_fork(void)
+int sys_fork(void)
 {
   return fork();
 }
 
-int
-sys_exit(void)
+int sys_exit(void)
 {
   exit();
-  return 0;  // not reached
+  return 0; // not reached
 }
 
-int
-sys_wait(void)
+int sys_wait(void)
 {
   return wait();
 }
 
-int
-sys_kill(void)
+int sys_kill(void)
 {
   int pid;
 
-  if(argint(0, &pid) < 0)
+  if (argint(0, &pid) < 0)
     return -1;
   return kill(pid);
 }
 
-int
-sys_getpid(void)
+int sys_getpid(void)
 {
   return myproc()->pid;
 }
 
-int
-sys_sbrk(void)
+int sys_sbrk(void)
 {
   int addr;
   int n;
 
-  if(argint(0, &n) < 0)
+  if (argint(0, &n) < 0)
     return -1;
   addr = myproc()->sz;
-  if(growproc(n) < 0)
+  if (growproc(n) < 0)
     return -1;
   return addr;
 }
 
-int
-sys_sleep(void)
+int sys_sleep(void)
 {
   int n;
   uint ticks0;
 
-  if(argint(0, &n) < 0)
+  if (argint(0, &n) < 0)
     return -1;
   acquire(&tickslock);
   ticks0 = ticks;
-  while(ticks - ticks0 < n){
-    if(myproc()->killed){
+  while (ticks - ticks0 < n)
+  {
+    if (myproc()->killed)
+    {
       release(&tickslock);
       return -1;
     }
@@ -80,8 +75,7 @@ sys_sleep(void)
 
 // return how many clock tick interrupts have occurred
 // since start.
-int
-sys_uptime(void)
+int sys_uptime(void)
 {
   uint xticks;
 
@@ -91,60 +85,62 @@ sys_uptime(void)
   return xticks;
 }
 
-int 
-sys_trace(void) 
+int sys_trace(void)
 {
-    int on;
-    
-    if (argint(0, &on) < 0)
-        return -1;
-    myproc()->tracing = on;
-    return 0;
+  int on;
+
+  if (argint(0, &on) < 0)
+    return -1;
+  myproc()->tracing = on;
+  return 0;
 }
 
 // Estructura para transferir la información de un proceso al espacio de usuario
-struct procinfo {
+struct procinfo
+{
   int pid;
-  char state_name[16]; 
+  char state_name[16];
   int context_switches;
-  int sz; 
+  int sz;
 };
 
-struct sys_stats {
-    uint ticks;
-    int active_procs;
+struct sys_stats
+{
+  uint ticks;
+  int active_procs;
 };
 
 // Definición del ptable para acceder a la tabla de procesos
-extern struct {
+extern struct
+{
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
 
 static char *states[] = {
-  [UNUSED]    "unused",
-  [EMBRYO]    "embryo",
-  [SLEEPING]  "sleeping",
-  [RUNNABLE]  "runnable",
-  [RUNNING]   "running",
-  [ZOMBIE]    "zombie"
-};
+    [UNUSED] "unused",
+    [EMBRYO] "embryo",
+    [SLEEPING] "sleeping",
+    [RUNNABLE] "runnable",
+    [RUNNING] "running",
+    [ZOMBIE] "zombie"};
 
 // Nueva syscall para obtener información de los procesos
-int
-sys_getprocinfo(void)
+int sys_getprocinfo(void)
 {
   struct procinfo *u_pinfos; // Puntero al array de structs en espacio de usuario
   struct proc *p;
   int i = 0;
 
   // Obtener el puntero al array de structs desde los argumentos de la syscall
-  if (argptr(0, (char**)&u_pinfos, sizeof(struct procinfo) * NPROC) < 0)
+  if (argptr(0, (char **)&u_pinfos, sizeof(struct procinfo) * NPROC) < 0)
     return -1;
-  
+
   acquire(&ptable.lock);
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->state != UNUSED){
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if (p->state != UNUSED)
+    {
       // Llenar la estructura de información del proceso
       struct procinfo k_pinfo;
       k_pinfo.pid = p->pid;
@@ -153,7 +149,8 @@ sys_getprocinfo(void)
       safestrcpy(k_pinfo.state_name, states[p->state], 16);
 
       // Copiar la estructura al espacio de usuario
-      if(copyout(myproc()->pgdir, (uint)&u_pinfos[i], (char*)&k_pinfo, sizeof(k_pinfo)) < 0) {
+      if (copyout(myproc()->pgdir, (uint)&u_pinfos[i], (char *)&k_pinfo, sizeof(k_pinfo)) < 0)
+      {
         release(&ptable.lock);
         return -1;
       }
@@ -162,4 +159,39 @@ sys_getprocinfo(void)
   }
   release(&ptable.lock);
   return i; // Retorna el número de procesos activos copiados
+}
+
+int sys_getsysstats(void)
+{
+  struct sys_stats *u_stats; // Puntero a la struct en espacio de usuario
+  struct proc *p;
+  int count = 0;
+
+  // Obtener el puntero a la struct desde los argumentos de la syscall
+  if (argptr(0, (char **)&u_stats, sizeof(struct sys_stats)) < 0)
+    return -1;
+  // Contar procesos activos
+  acquire(&ptable.lock);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if (p->state != UNUSED)
+    {
+      count++;
+    }
+  }
+  release(&ptable.lock);
+
+  // Llenar la estructura de estadísticas del sistema
+  struct sys_stats k_stats;
+  acquire(&tickslock);
+  k_stats.ticks = ticks;
+  release(&tickslock);
+  k_stats.active_procs = count;
+  
+  // Copiar la estructura al espacio de usuario
+  if (copyout(myproc()->pgdir, (uint)u_stats, (char *)&k_stats, sizeof(k_stats)) < 0)
+  {
+    return -1;
+  }
+  return 0;
 }

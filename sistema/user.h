@@ -9,6 +9,13 @@ struct procinfo {
   int sz; // Tamaño de la memoria
 };
 
+// Estructura para estadísticas del sistema
+struct sys_stats {
+    uint ticks;
+    int active_procs;
+    uint total_switches; // Total de cambios de contexto en el sistema
+};
+
 // system calls
 int fork(void);
 int exit(void) __attribute__((noreturn));
@@ -33,6 +40,7 @@ int sleep(int);
 int uptime(void);
 int trace(int);
 int getprocinfo(struct procinfo *);     // Nueva syscall para obtener info del proceso 
+int getsysstats(struct sys_stats *);    // Nueva syscall para obtener stats del sistema
 
 // ulib.c
 int stat(const char*, struct stat*);

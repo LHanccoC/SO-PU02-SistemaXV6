@@ -32,3 +32,4 @@ SYSCALL(uptime)
 SYSCALL(trace)
 
 SYSCALL(getprocinfo)
+SYSCALL(getsysstats)
