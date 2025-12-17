@@ -30,6 +30,6 @@ SYSCALL(sbrk)
 SYSCALL(sleep)
 SYSCALL(uptime)
 SYSCALL(trace)
-
 SYSCALL(getprocinfo)
+SYSCALL(getsyscount)
 SYSCALL(getsysstats)

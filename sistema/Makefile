@@ -185,6 +185,7 @@ UPROGS=\
 	_pruebatrace\
 	_psinfo\
 	_uptime\
+	_syscount\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

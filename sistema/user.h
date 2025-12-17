@@ -41,6 +41,7 @@ int uptime(void);
 int trace(int);
 int getprocinfo(struct procinfo *);     // Nueva syscall para obtener info del proceso 
 int getsysstats(struct sys_stats *);    // Nueva syscall para obtener stats del sistema
+int getsyscount(int);
 
 // ulib.c
 int stat(const char*, struct stat*);

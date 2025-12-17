@@ -8,7 +8,10 @@
 #include "proc.h"
 #include "spinlock.h"
 
-int sys_fork(void)
+extern int syscall_count[];
+
+int
+sys_fork(void)
 {
   return fork();
 }
@@ -93,6 +96,20 @@ int sys_trace(void)
     return -1;
   myproc()->tracing = on;
   return 0;
+}
+
+int
+sys_getsyscount(void)
+{
+  int num;
+
+  if(argint(0, &num) < 0)
+    return -1;
+
+  if(num < 0 || num >= 32)
+    return -1;
+
+  return syscall_count[num];
 }
 
 // Estructura para transferir la información de un proceso al espacio de usuario
@@ -187,7 +204,7 @@ int sys_getsysstats(void)
   k_stats.ticks = ticks;
   release(&tickslock);
   k_stats.active_procs = count;
-  
+
   // Copiar la estructura al espacio de usuario
   if (copyout(myproc()->pgdir, (uint)u_stats, (char *)&k_stats, sizeof(k_stats)) < 0)
   {
